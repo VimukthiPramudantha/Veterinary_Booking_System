@@ -34,7 +34,7 @@ const BookAppointment = () => {
     age: ''
   });
   const [reason, setReason] = useState('');
-  const [step, setStep] = useState(1); // 1: Select Time, 2: Pet Info, 3: Confirmation
+  const [step, setStep] = useState(1);
 
   useEffect(() => {
     if (doctorId) {
@@ -44,12 +44,29 @@ const BookAppointment = () => {
 
   useEffect(() => {
     if (selectedDate && doctorId) {
+      console.log('Fetching slots for date:', selectedDate); // Debug log
       fetchAvailableSlots(doctorId, selectedDate);
     }
   }, [selectedDate, doctorId]);
 
   const handleDateChange = (dateString) => {
-    setSelectedDate(dateString);
+    // Ensure dateString is in YYYY-MM-DD format and normalized to local date
+    let normalizedDate;
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        console.error('Invalid date string:', dateString);
+        return;
+      }
+      // Format as YYYY-MM-DD in local timezone
+      normalizedDate = date.toISOString().split('T')[0];
+    } catch (error) {
+      console.error('Error parsing date:', error);
+      return;
+    }
+
+    console.log('Selected date:', dateString, 'Normalized:', normalizedDate); // Debug log
+    setSelectedDate(normalizedDate);
     setSelectedTime(''); // Reset selected time when date changes
   };
 
@@ -80,7 +97,6 @@ const BookAppointment = () => {
   };
 
   const handleBooking = () => {
-    // Navigate to diagnosis questionnaire
     const bookingData = {
       doctorId,
       appointmentDate: selectedDate,
@@ -89,7 +105,6 @@ const BookAppointment = () => {
       reason
     };
     
-    // Store booking data in session storage temporarily
     sessionStorage.setItem('bookingData', JSON.stringify(bookingData));
     navigate('/diagnosis-questionnaire');
   };
@@ -98,6 +113,8 @@ const BookAppointment = () => {
   const generateAvailableDates = () => {
     const dates = [];
     const today = new Date();
+    // Set time to midnight to avoid timezone issues
+    today.setHours(0, 0, 0, 0);
     for (let i = 1; i <= 30; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
@@ -119,7 +136,7 @@ const BookAppointment = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
+        {/* Header and other UI components remain unchanged */}
         <div className="mb-8 animate-slideIn">
           <div className="text-center mb-6">
             <div className="flex items-center justify-center space-x-3 mb-4">
@@ -158,7 +175,6 @@ const BookAppointment = () => {
               </div>
             </div>
             
-            {/* Working Hours Display */}
             {selectedDoctor.workingHours && (
               <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
                 <div className="flex items-center justify-center space-x-2">
@@ -173,7 +189,6 @@ const BookAppointment = () => {
           </div>
         </div>
 
-        {/* Progress Steps */}
         <div className="mb-8 animate-fadeInUp">
           <div className="flex items-center justify-center space-x-4 md:space-x-8">
             {[1, 2, 3].map((stepNum) => (
@@ -214,7 +229,6 @@ const BookAppointment = () => {
           </div>
         </div>
 
-        {/* Step Content */}
         <div className="transition-all duration-500 animate-scaleIn">
           {step === 1 && (
             <div className="space-y-8">
@@ -229,7 +243,7 @@ const BookAppointment = () => {
                 <div className="space-y-4">
                   <CalendarPicker
                     selectedDate={selectedDate}
-                    onDateSelect={setSelectedDate}
+                    onDateSelect={handleDateChange} // Updated to use handleDateChange
                     workingHours={selectedDoctor.workingHours}
                   />
                 </div>
@@ -427,7 +441,6 @@ const BookAppointment = () => {
           )}
         </div>
 
-        {/* Navigation Buttons */}
         <div className="mt-12 flex justify-between items-center animate-fadeInUp">
           <button
             onClick={handleBack}
