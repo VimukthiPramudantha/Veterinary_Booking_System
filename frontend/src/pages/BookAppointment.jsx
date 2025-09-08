@@ -44,33 +44,22 @@ const BookAppointment = () => {
 
   useEffect(() => {
     if (selectedDate && doctorId) {
-      console.log('Fetching slots for date:', selectedDate); // Debug log
+      console.log('BookAppointment: Fetching slots for date:', selectedDate);
       fetchAvailableSlots(doctorId, selectedDate);
     }
   }, [selectedDate, doctorId]);
 
   const handleDateChange = (dateString) => {
-    // Ensure dateString is in YYYY-MM-DD format and normalized to local date
-    let normalizedDate;
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        console.error('Invalid date string:', dateString);
-        return;
-      }
-      // Format as YYYY-MM-DD in local timezone
-      normalizedDate = date.toISOString().split('T')[0];
-    } catch (error) {
-      console.error('Error parsing date:', error);
-      return;
-    }
-
-    console.log('Selected date:', dateString, 'Normalized:', normalizedDate); // Debug log
-    setSelectedDate(normalizedDate);
-    setSelectedTime(''); // Reset selected time when date changes
+    // Ensure dateString is in YYYY-MM-DD format
+    const formattedDate = new Date(dateString).toISOString().split('T')[0];
+    console.log('BookAppointment: Raw dateString from CalendarPicker:', dateString);
+    console.log('BookAppointment: Formatted selectedDate:', formattedDate);
+    setSelectedDate(formattedDate);
+    setSelectedTime('');
   };
 
   const handleTimeSelect = (time) => {
+    console.log('BookAppointment: Selected time:', time);
     setSelectedTime(time);
   };
 
@@ -105,16 +94,14 @@ const BookAppointment = () => {
       reason
     };
     
+    console.log('BookAppointment: Booking data:', bookingData);
     sessionStorage.setItem('bookingData', JSON.stringify(bookingData));
     navigate('/diagnosis-questionnaire');
   };
 
-  // Generate available dates (next 30 days)
   const generateAvailableDates = () => {
     const dates = [];
     const today = new Date();
-    // Set time to midnight to avoid timezone issues
-    today.setHours(0, 0, 0, 0);
     for (let i = 1; i <= 30; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
@@ -136,7 +123,6 @@ const BookAppointment = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header and other UI components remain unchanged */}
         <div className="mb-8 animate-slideIn">
           <div className="text-center mb-6">
             <div className="flex items-center justify-center space-x-3 mb-4">
@@ -243,7 +229,7 @@ const BookAppointment = () => {
                 <div className="space-y-4">
                   <CalendarPicker
                     selectedDate={selectedDate}
-                    onDateSelect={handleDateChange} // Updated to use handleDateChange
+                    onDateSelect={handleDateChange}
                     workingHours={selectedDoctor.workingHours}
                   />
                 </div>
@@ -252,7 +238,7 @@ const BookAppointment = () => {
                   <TimeSlotPicker
                     slots={availableSlots}
                     selectedTime={selectedTime}
-                    onTimeSelect={setSelectedTime}
+                    onTimeSelect={handleTimeSelect}
                     loading={loading}
                     workingHours={selectedDoctor.workingHours}
                     selectedDate={selectedDate}
@@ -395,7 +381,8 @@ const BookAppointment = () => {
                               weekday: 'long',
                               month: 'long',
                               day: 'numeric',
-                              year: 'numeric'
+                              year: 'numeric',
+                              timeZone: 'Asia/Colombo'
                             })}
                           </span>
                         </div>
